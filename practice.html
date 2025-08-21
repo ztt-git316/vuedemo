@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue.js 登录与注册应用</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        #app {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            min-height: 600px;
+            position: relative;
+        }
+        
+        .container {
+            padding: 20px;
+        }
+        
+        /* 登录和注册页面通用样式 */
+        .auth-header {
+            text-align: center;
+            padding: 30px 0;
+        }
+        
+        .auth-header h1 {
+            color: #4776E6;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .auth-header p {
+            color: #777;
+            font-size: 16px;
+        }
+        
+        .auth-form {
+            padding: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #4776E6;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        
+        .auth-btn:hover {
+            transform: scale(1.02);
+            opacity: 0.9;
+        }
+        
+        .auth-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+        }
+        
+        .auth-link a {
+            color: #4776E6;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .error-message {
+            color: #ff4757;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #ffeff0;
+            border-radius: 8px;
+            border-left: 4px solid #ff4757;
+        }
+        
+        .success-message {
+            color: #2ed573;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f0fff4;
+            border-radius: 8px;
+            border-left: 4px solid #2ed573;
+        }
+        
+        /* 待办事项页面样式 */
+        .header {
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-info span {
+            font-size: 14px;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .input-section {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .input-section input {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-section input:focus {
+            outline: none;
+            border-color: #4776E6;
+        }
+        
+        .input-section button {
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        
+        .input-section button:hover {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .filters button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filters button.active {
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            color: white;
+            border-color: #4776E6;
+        }
+        
+        .tasks-list {
+            padding: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #f1f1f1;
+            animation: fadeIn 0.5s;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+        
+        .task-checkbox {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .task-text {
+            flex: 1;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .task-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #888;
+            transition: color 0.3s;
+        }
+        
+        .task-actions button:hover {
+            color: #4776E6;
+        }
+        
+        .delete-btn:hover {
+            color: #ff4757 !important;
+        }
+        
+        .stats {
+            padding: 15px 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+        
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        
+        /* 路由过渡动画 */
+        .router-view {
+            position: absolute;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .slide-left-enter-from,
+        .slide-right-leave-to {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        
+        .slide-left-leave-to,
+        .slide-right-enter-from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 500px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .input-section {
+                flex-direction: column;
+            }
+            
+            .filters {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .user-info {
+                position: static;
+                justify-content: center;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <router-view></router-view>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+        const { createRouter, createWebHashHistory } = VueRouter;
+        
+        // 登录组件
+        const Login = {
+            template: `
+                <div class="router-view">
+                    <div class="container">
+                        <div class="auth-header">
+                            <h1><i class="fas fa-lock"></i> 用户登录</h1>
+                            <p>请输入您的账号信息登录系统</p>
+                        </div>
+                        
+                        <div class="auth-form">
+                            <div v-if="errorMessage" class="error-message">
+                                {{ errorMessage }}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="username">用户名</label>
+                                <input 
+                                    v-model="username" 
+                                    type="text" 
+                                    id="username" 
+                                    placeholder="请输入用户名"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="password">密码</label>
+                                <input 
+                                    v-model="password" 
+                                    type="password" 
+                                    id="password" 
+                                    placeholder="请输入密码"
+                                >
+                            </div>
+                            
+                            <button class="auth-btn" @click="login">
+                                <i class="fas fa-sign-in-alt"></i> 登录
+                            </button>
+                            
+                            <div class="auth-link">
+                                没有账号？<a @click="goToRegister">立即注册</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const username = ref('');
+                const password = ref('');
+                const errorMessage = ref('');
+                const router = VueRouter.useRouter();
+                
+                // 检查是否已登录
+                onMounted(() => {
+                    const isLoggedIn = localStorage.getItem('isLoggedIn');
+                    if (isLoggedIn === 'true') {
+                        router.push('/todo');
+                    }
+                });
+                
+                // 登录方法
+                const login = () => {
+                    if (!username.value || !password.value) {
+                        errorMessage.value = '用户名和密码不能为空';
+                        return;
+                    }
+                    
+                    // 从localStorage获取用户数据
+                    const users = JSON.parse(localStorage.getItem('users') || '[]');
+                    const user = users.find(u => u.username === username.value && u.password === password.value);
+                    
+                    if (user) {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentUser', JSON.stringify(user));
+                        router.push('/todo');
+                    } else {
+                        errorMessage.value = '用户名或密码错误';
+                    }
+                };
+                
+                // 跳转到注册页面
+                const goToRegister = () => {
+                    router.push('/register');
+                };
+                
+                return {
+                    username,
+                    password,
+                    errorMessage,
+                    login,
+                    goToRegister
+                };
+            }
+        };
+        
+        // 注册组件
+        const Register = {
+            template: `
+                <div class="router-view">
+                    <div class="container">
+                        <div class="auth-header">
+                            <h1><i class="fas fa-user-plus"></i> 用户注册</h1>
+                            <p>创建您的账号以开始使用待办事项应用</p>
+                        </div>
+                        
+                        <div class="auth-form">
+                            <div v-if="errorMessage" class="error-message">
+                                {{ errorMessage }}
+                            </div>
+                            
+                            <div v-if="successMessage" class="success-message">
+                                {{ successMessage }}
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="newUsername">用户名</label>
+                                <input 
+                                    v-model="newUsername" 
+                                    type="text" 
+                                    id="newUsername" 
+                                    placeholder="请设置用户名"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="newPassword">密码</label>
+                                <input 
+                                    v-model="newPassword" 
+                                    type="password" 
+                                    id="newPassword" 
+                                    placeholder="请设置密码（至少6位）"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="confirmPassword">确认密码</label>
+                                <input 
+                                    v-model="confirmPassword" 
+                                    type="password" 
+                                    id="confirmPassword" 
+                                    placeholder="请再次输入密码"
+                                >
+                            </div>
+                            
+                            <button class="auth-btn" @click="register">
+                                <i class="fas fa-user-plus"></i> 注册
+                            </button>
+                            
+                            <div class="auth-link">
+                                已有账号？<a @click="goToLogin">立即登录</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const newUsername = ref('');
+                const newPassword = ref('');
+                const confirmPassword = ref('');
+                const errorMessage = ref('');
+                const successMessage = ref('');
+                const router = VueRouter.useRouter();
+                
+                // 注册方法
+                const register = () => {
+                    // 重置消息
+                    errorMessage.value = '';
+                    successMessage.value = '';
+                    
+                    // 表单验证
+                    if (!newUsername.value || !newPassword.value || !confirmPassword.value) {
+                        errorMessage.value = '所有字段都必须填写';
+                        return;
+                    }
+                    
+                    if (newPassword.value.length < 6) {
+                        errorMessage.value = '密码长度至少为6位';
+                        return;
+                    }
+                    
+                    if (newPassword.value !== confirmPassword.value) {
+                        errorMessage.value = '两次输入的密码不一致';
+                        return;
+                    }
+                    
+                    // 从localStorage获取用户数据
+                    const users = JSON.parse(localStorage.getItem('users') || '[]');
+                    
+                    // 检查用户名是否已存在
+                    if (users.some(user => user.username === newUsername.value)) {
+                        errorMessage.value = '用户名已存在，请选择其他用户名';
+                        return;
+                    }
+                    
+                    // 创建新用户
+                    const newUser = {
+                        id: Date.now(),
+                        username: newUsername.value,
+                        password: newPassword.value,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    // 保存用户数据
+                    users.push(newUser);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    
+                    // 显示成功消息
+                    successMessage.value = '注册成功！正在跳转到登录页面...';
+                    
+                    // 2秒后跳转到登录页面
+                    setTimeout(() => {
+                        router.push('/');
+                    }, 2000);
+                };
+                
+                // 跳转到登录页面
+                const goToLogin = () => {
+                    router.push('/');
+                };
+                
+                return {
+                    newUsername,
+                    newPassword,
+                    confirmPassword,
+                    errorMessage,
+                    successMessage,
+                    register,
+                    goToLogin
+                };
+            }
+        };
+        
+        // 待办事项组件
+        const TodoApp = {
+            template: `
+                <div class="router-view">
+                    <div class="header">
+                        <h1><i class="fas fa-tasks"></i>TodoList</h1>
+                        <p>简单易用的任务管理工具</p>
+                        <div class="user-info">
+                            <span>欢迎，{{ username }}</span>
+                            <button class="logout-btn" @click="logout">
+                                <i class="fas fa-sign-out-alt"></i> 退出
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="input-section">
+                        <input 
+                            v-model="newTask" 
+                            @keyup.enter="addTask" 
+                            placeholder="输入新任务..." 
+                            type="text"
+                        >
+                        <button @click="addTask"><i class="fas fa-plus"></i> 添加</button>
+                    </div>
+                    
+                    <div class="filters">
+                        <button 
+                            :class="{ active: filter === 'all' }" 
+                            @click="filter = 'all'"
+                        >
+                            全部
+                        </button>
+                        <button 
+                            :class="{ active: filter === 'active' }" 
+                            @click="filter = 'active'"
+                        >
+                            待完成
+                        </button>
+                        <button 
+                            :class="{ active: filter === 'completed' }" 
+                            @click="filter = 'completed'"
+                        >
+                            已完成
+                        </button>
+                    </div>
+                    
+                    <div class="tasks-list">
+                        <div v-if="filteredTasks.length === 0" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>暂无任务</p>
+                        </div>
+                        
+                        <div 
+                            v-for="task in filteredTasks" 
+                            :key="task.id" 
+                            :class="['task-item', { completed: task.completed }]"
+                        >
+                            <input 
+                                type="checkbox" 
+                                class="task-checkbox" 
+                                v-model="task.completed"
+                            >
+                            <span class="task-text">{{ task.text }}</span>
+                            <div class="task-actions">
+                                <button @click="editTask(task)" class="edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button @click="deleteTask(task.id)" class="delete-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats">
+                        <p>总计: {{ totalTasks }} | 已完成: {{ completedTasks }} | 待完成: {{ activeTasks }}</p>
+                    </div>
+                </div>
+            `,
+            setup() {
+                const newTask = ref('');
+                const tasks = ref([]);
+                const filter = ref('all');
+                const currentUser = ref(JSON.parse(localStorage.getItem('currentUser') || '{}'));
+                const username = ref(currentUser.value.username || '用户');
+                const router = VueRouter.useRouter();
+                
+                // 检查是否已登录
+                onMounted(() => {
+                    const isLoggedIn = localStorage.getItem('isLoggedIn');
+                    if (isLoggedIn !== 'true') {
+                        router.push('/');
+                    }
+                    
+                    // 从localStorage加载任务
+                    const userTasks = localStorage.getItem(`tasks-${currentUser.value.id}`);
+                    if (userTasks) {
+                        tasks.value = JSON.parse(userTasks);
+                    }
+                });
+                
+                // 保存任务到localStorage
+                watch(tasks, (newTasks) => {
+                    localStorage.setItem(`tasks-${currentUser.value.id}`, JSON.stringify(newTasks));
+                }, { deep: true });
+                
+                // 添加新任务
+                const addTask = () => {
+                    if (newTask.value.trim() === '') return;
+                    
+                    tasks.value.push({
+                        id: Date.now(),
+                        text: newTask.value.trim(),
+                        completed: false,
+                        createdAt: new Date().toISOString()
+                    });
+                    
+                    newTask.value = '';
+                };
+                
+                // 删除任务
+                const deleteTask = (id) => {
+                    tasks.value = tasks.value.filter(task => task.id !== id);
+                };
+                
+                // 编辑任务
+                const editTask = (task) => {
+                    const newText = prompt('编辑任务:', task.text);
+                    if (newText !== null && newText.trim() !== '') {
+                        task.text = newText.trim();
+                    }
+                };
+                
+                // 退出登录
+                const logout = () => {
+                    localStorage.removeItem('isLoggedIn');
+                    localStorage.removeItem('currentUser');
+                    router.push('/');
+                };
+                
+                // 过滤任务
+                const filteredTasks = computed(() => {
+                    switch (filter.value) {
+                        case 'active':
+                            return tasks.value.filter(task => !task.completed);
+                        case 'completed':
+                            return tasks.value.filter(task => task.completed);
+                        default:
+                            return tasks.value;
+                    }
+                });
+                
+                // 统计信息
+                const totalTasks = computed(() => tasks.value.length);
+                const completedTasks = computed(() => tasks.value.filter(task => task.completed).length);
+                const activeTasks = computed(() => totalTasks.value - completedTasks.value);
+                
+                return {
+                    newTask,
+                    tasks,
+                    filter,
+                    username,
+                    addTask,
+                    deleteTask,
+                    editTask,
+                    logout,
+                    filteredTasks,
+                    totalTasks,
+                    completedTasks,
+                    activeTasks
+                };
+            }
+        };
+        
+        // 路由配置
+        const routes = [
+            { path: '/', component: Login },
+            { path: '/register', component: Register },
+            { path: '/todo', component: TodoApp }
+        ];
+        
+        // 创建路由实例
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes
+        });
+        
+        // 创建Vue应用
+        const app = createApp({});
+        app.use(router);
+        app.mount('#app');
+    </script>
+</body>
+</html>
